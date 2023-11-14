@@ -1,0 +1,13 @@
+version: "2"
+cloud:
+  project: "todo-go"
+sql:
+  - engine: "mysql"
+    queries: "query.sql"
+    schema: "schema.sql"
+    database:
+      managed: true
+    gen:
+      go:
+        package: "sqlc"
+        out: "sqlc"

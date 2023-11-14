@@ -1,32 +1,66 @@
 package main
 
 import (
+	"context"
 	"database/sql"
-	"fmt"
-	_ "github.com/jackc/pgx/v5/stdlib"
 	"log"
+	"os"
+	"reflect"
+  "fmt"
+
+	_ "github.com/go-sql-driver/mysql"
+
+	"github.com/sidma64/todo-go/sqlc"
 )
 
+func run() error {
+	ctx := context.Background()
+  envName := "DSN"
+  if os.Getenv(envName) == "" {
+    return fmt.Errorf("you need to provide environment variable '%s'", envName)
+  }
+	db, err := sql.Open("mysql", os.Getenv("DSN"))
+	if err != nil {
+		return err
+	}
+
+	queries := sqlc.New(db)
+
+	// list all authors
+	authors, err := queries.ListAuthors(ctx)
+	if err != nil {
+		return err
+	}
+	log.Println(authors)
+
+	// create an author
+	result, err := queries.CreateAuthor(ctx, sqlc.CreateAuthorParams{
+		Name: "Brian Kernighan",
+		Bio:  sql.NullString{String: "Co-author of The C Programming Language and The Go Programming Language", Valid: true},
+	})
+	if err != nil {
+		return err
+	}
+
+	insertedAuthorID, err := result.LastInsertId()
+	if err != nil {
+		return err
+	}
+	log.Println(insertedAuthorID)
+
+	// get the author we just inserted
+	fetchedAuthor, err := queries.GetAuthor(ctx, insertedAuthorID)
+	if err != nil {
+		return err
+	}
+
+	// prints true
+	log.Println(reflect.DeepEqual(insertedAuthorID, fetchedAuthor.ID))
+	return nil
+}
+
 func main() {
-	connStr := "postgresql://sidma64:0eNEqKJwtY6p@ep-withered-voice-43063416.eu-central-1.aws.neon.tech/neondb"
-	db, err := sql.Open("pgx", connStr)
-	if err != nil {
+	if err := run(); err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
-
-	rows, err := db.Query("select version()")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer rows.Close()
-
-	var version string
-	for rows.Next() {
-		err := rows.Scan(&version)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-	fmt.Printf("version=%s\n", version)
 }
