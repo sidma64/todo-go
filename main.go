@@ -1,10 +1,8 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"github.com/sidma64/todo-go/database"
-	"log"
 )
 
 type Todo struct {
@@ -44,11 +42,9 @@ func main() {
 		Password: "1323",
 		Todos:    todos,
 	}
+	_ = newUser
 	coll := database.DB.Collection("users")
+	_ = coll
 
-	id, err := coll.InsertOne(context.TODO(), newUser)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(id)
+	fmt.Println(database.GetAllUsers())
 }
