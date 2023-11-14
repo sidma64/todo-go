@@ -2,65 +2,44 @@ package main
 
 import (
 	"context"
-	"database/sql"
-	"log"
+	"fmt"
 	"os"
-	"reflect"
-  "fmt"
 
-	_ "github.com/go-sql-driver/mysql"
-
-	"github.com/sidma64/todo-go/sqlc"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func run() error {
-	ctx := context.Background()
-  envName := "DSN"
-  if os.Getenv(envName) == "" {
-    return fmt.Errorf("you need to provide environment variable '%s'", envName)
-  }
-	db, err := sql.Open("mysql", os.Getenv("DSN"))
-	if err != nil {
-		return err
-	}
-
-	queries := sqlc.New(db)
-
-	// list all authors
-	authors, err := queries.ListAuthors(ctx)
-	if err != nil {
-		return err
-	}
-	log.Println(authors)
-
-	// create an author
-	result, err := queries.CreateAuthor(ctx, sqlc.CreateAuthorParams{
-		Name: "Brian Kernighan",
-		Bio:  sql.NullString{String: "Co-author of The C Programming Language and The Go Programming Language", Valid: true},
-	})
-	if err != nil {
-		return err
-	}
-
-	insertedAuthorID, err := result.LastInsertId()
-	if err != nil {
-		return err
-	}
-	log.Println(insertedAuthorID)
-
-	// get the author we just inserted
-	fetchedAuthor, err := queries.GetAuthor(ctx, insertedAuthorID)
-	if err != nil {
-		return err
-	}
-
-	// prints true
-	log.Println(reflect.DeepEqual(insertedAuthorID, fetchedAuthor.ID))
-	return nil
+type Restaurant struct {
+	Name         string
+	RestaurantId string        `bson:"restaurant_id,omitempty"`
+	Cuisine      string        `bson:"cuisine,omitempty"`
+	Address      interface{}   `bson:"address,omitempty"`
+	Borough      string        `bson:"borough,omitempty"`
+	Grades       []interface{} `bson:"grades,omitempty"`
 }
 
 func main() {
-	if err := run(); err != nil {
-		log.Fatal(err)
+	// Use the SetServerAPIOptions() method to set the Stable API version to 1
+	fmt.Println(os.Getenv("MONGODB_URI"))
+	opts := options.Client().ApplyURI(os.Getenv("MONGODB_URI"))
+
+	// Create a new client and connect to the server
+	client, err := mongo.Connect(context.TODO(), opts)
+	if err != nil {
+		panic(err)
 	}
+
+	defer func() {
+		if err = client.Disconnect(context.TODO()); err != nil {
+			panic(err)
+		}
+	}()
+
+	coll := client.Database("sample_restaurants").Collection("restaurants")
+	newRestaurant := Restaurant{Name: "8282", Cuisine: "Korean"}
+	result, err := coll.InsertOne(context.TODO(), newRestaurant)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(result)
 }
