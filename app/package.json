@@ -1,0 +1,26 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "build/index.js",
+  "scripts": {
+    "build": "esbuild index.tsx --bundle --outfile=build/bundle.js",
+    "clean": "rm -rf ./build/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "github.com/sidma/todo-go"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "esbuild": "0.19.7",
+    "typescript": "^5.3.2"
+  },
+  "dependencies": {
+    "@types/react": "^18.2.38",
+    "@types/react-dom": "^18.2.16",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}

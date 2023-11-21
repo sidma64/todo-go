@@ -33,6 +33,9 @@ func main() {
 	todos = append(todos, NewTodo("Learn Microsoft Excel"))
 	todos = append(todos, NewTodo("Finish homework"))
 
+	fileServer := http.FileServer(http.Dir("./app")) // New code
+    http.Handle("/", fileServer) // New code
+
 	http.HandleFunc("/todos", handleGetTodos)
 
 	http.ListenAndServe(":3000", nil)
