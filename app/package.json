@@ -1,15 +1,15 @@
 {
-  "name": "frontend",
+  "name": "todo-app",
   "version": "1.0.0",
   "description": "",
-  "main": "build/index.js",
+  "main": "build/bundle.js",
   "scripts": {
     "build": "esbuild index.tsx --bundle --outfile=build/bundle.js",
     "clean": "rm -rf ./build/"
   },
   "repository": {
     "type": "git",
-    "url": "github.com/sidma/todo-go"
+    "url": "https://github.com/sidma64/todo-go.git"
   },
   "author": "",
   "license": "ISC",

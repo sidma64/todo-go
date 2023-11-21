@@ -5,4 +5,5 @@ export $(shell sed 's/=.*//' .env)
 start:
 	cd app; npm install
 	cd app; npm run build
-	go run main.go
+	go build -o build/out main.go
+	./build/out
