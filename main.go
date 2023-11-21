@@ -1,50 +1,71 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
-	"github.com/sidma64/todo-go/database"
-)
+	"log"
+	"os"
+	"errors"
 
-type Todo struct {
-	Title       string
-	Description string
-	isDone      bool
-}
+	_ "github.com/go-sql-driver/mysql"
+)
 
 type User struct {
 	Name     string
 	Email    string
 	Password string
-	Todos    []Todo
+}
+
+func (user *User) Save(db *sql.DB) (id int64, err error) {
+	if _, err = GetUserByEmail(user.Email, db); !errors.Is(err, sql.ErrNoRows) {
+		return 0, errors.New("email taken")
+	}
+	if _, err = GetUserByName(user.Name, db); !errors.Is(err, sql.ErrNoRows) {
+		return 0, errors.New("username taken")
+	}
+
+	result, err := db.Exec("INSERT INTO user (name, email, password) VALUES (?, ?, ?)", user.Name, user.Email, user.Password)
+	if err != nil {
+		fmt.Println("hello")
+		return 0, err
+	}
+	id, err = result.LastInsertId()
+	return id, err
+}
+
+func GetUserByName(name string, db *sql.DB) (user User, err error) {
+	err = db.QueryRow("SELECT name, email, password FROM user WHERE name=?", name).Scan(&user.Name, &user.Email, &user.Password)
+	return user, err
+}
+
+func GetUserByEmail(email string, db *sql.DB) (user User, err error) {
+	err = db.QueryRow("SELECT name, email, password FROM user WHERE email=?", email).Scan(&user.Name, &user.Email, &user.Password)
+	return user, err
+}
+
+func LoginWithEmail(email string, password string) () {
+
 }
 
 func main() {
-	defer database.Disconnect()
-	todos := []Todo{
-		{
-			Title:  "Clean your room",
-			isDone: false,
-		},
-		{
-			Title:  "Finish a programming project",
-			isDone: false,
-		},
-		{
-			Title:       "Do the homework from math class",
-			Description: "The details are on the paper in my backpack",
-			isDone:      true,
-		},
+	db, err := sql.Open("mysql", os.Getenv("DSN"))
+	if err != nil {
+		log.Fatalf("failed to connect: %v", err)
 	}
-	_ = todos
-	newUser := User{
-		Name:     "sidma",
-		Email:    "toprak.code@gmail.com",
-		Password: "1323",
-		Todos:    todos,
-	}
-	_ = newUser
-	coll := database.DB.Collection("users")
-	_ = coll
+	defer db.Close()
 
-	fmt.Println(database.GetAllUsers())
+	if err := db.Ping(); err != nil {
+		log.Fatalf("failed to ping: %v", err)
+	}
+
+	newUser := User{
+		Name:     "red",
+		Email:    "red@example.com",
+		Password: "132325",
+	}
+	newUserId, err := newUser.Save(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(newUserId)
 }
