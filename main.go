@@ -1,71 +1,37 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
-	"log"
-	"os"
-	"errors"
-
-	_ "github.com/go-sql-driver/mysql"
+	"encoding/json"
+	"net/http"
 )
 
-type User struct {
-	Name     string
-	Email    string
-	Password string
+type Todo struct {
+	Title  string `json:"title"`
+	IsDone bool   `json:"isDone"`
 }
 
-func (user *User) Save(db *sql.DB) (id int64, err error) {
-	if _, err = GetUserByEmail(user.Email, db); !errors.Is(err, sql.ErrNoRows) {
-		return 0, errors.New("email taken")
+func NewTodo(title string) Todo {
+	return Todo{
+		Title:  title,
+		IsDone: false,
 	}
-	if _, err = GetUserByName(user.Name, db); !errors.Is(err, sql.ErrNoRows) {
-		return 0, errors.New("username taken")
+}
+
+var todos []Todo
+
+func handleGetTodos(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, "Unsupported method", 400)
+		return
 	}
-
-	result, err := db.Exec("INSERT INTO user (name, email, password) VALUES (?, ?, ?)", user.Name, user.Email, user.Password)
-	if err != nil {
-		fmt.Println("hello")
-		return 0, err
-	}
-	id, err = result.LastInsertId()
-	return id, err
-}
-
-func GetUserByName(name string, db *sql.DB) (user User, err error) {
-	err = db.QueryRow("SELECT name, email, password FROM user WHERE name=?", name).Scan(&user.Name, &user.Email, &user.Password)
-	return user, err
-}
-
-func GetUserByEmail(email string, db *sql.DB) (user User, err error) {
-	err = db.QueryRow("SELECT name, email, password FROM user WHERE email=?", email).Scan(&user.Name, &user.Email, &user.Password)
-	return user, err
-}
-
-func LoginWithEmail(email string, password string) () {
-
+	json.NewEncoder(w).Encode(todos)
 }
 
 func main() {
-	db, err := sql.Open("mysql", os.Getenv("DSN"))
-	if err != nil {
-		log.Fatalf("failed to connect: %v", err)
-	}
-	defer db.Close()
+	todos = append(todos, NewTodo("Learn Microsoft Excel"))
+	todos = append(todos, NewTodo("Finish homework"))
 
-	if err := db.Ping(); err != nil {
-		log.Fatalf("failed to ping: %v", err)
-	}
+	http.HandleFunc("/todos", handleGetTodos)
 
-	newUser := User{
-		Name:     "red",
-		Email:    "red@example.com",
-		Password: "132325",
-	}
-	newUserId, err := newUser.Save(db)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(newUserId)
+	http.ListenAndServe(":3000", nil)
 }
