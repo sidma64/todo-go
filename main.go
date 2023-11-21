@@ -20,11 +20,13 @@ func NewTodo(title string) Todo {
 var todos []Todo
 
 func handleGetTodos(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
+	switch r.Method {
+	case http.MethodGet:
+		json.NewEncoder(w).Encode(todos)
+	default:
 		http.Error(w, "Unsupported method", 400)
 		return
 	}
-	json.NewEncoder(w).Encode(todos)
 }
 
 func main() {
