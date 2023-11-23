@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "lib": ["DOM", "DOM.Iterable", "ESNext"],
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "target": "ESNext",
+        "sourceMap": true,
+        "esModuleInterop": true,
+        "jsx": "react",
+        "noEmit": true
+    },
+    "exclude": ["node_modules"]
+}

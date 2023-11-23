@@ -1,26 +1,29 @@
 {
-  "name": "todo-app",
-  "version": "1.0.0",
-  "description": "",
-  "main": "build/bundle.js",
-  "scripts": {
-    "build": "esbuild index.tsx --bundle --outfile=build/bundle.js",
-    "clean": "rm -rf ./build/"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/sidma64/todo-go.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "esbuild": "0.19.7",
-    "typescript": "^5.3.2"
-  },
-  "dependencies": {
-    "@types/react": "^18.2.38",
-    "@types/react-dom": "^18.2.16",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
-  }
+    "name": "todo-app",
+    "version": "1.0.0",
+    "description": "",
+    "main": "build/bundle.js",
+    "scripts": {
+        "build": "esbuild index.tsx --bundle --outfile=build/bundle.js",
+        "clean": "rm -rf ./build/",
+        "lint": "prettier -w . && tsc"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/sidma64/todo-go.git"
+    },
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@types/node": "^20.9.4",
+        "esbuild": "0.19.7",
+        "prettier": "^3.1.0",
+        "typescript": "^5.3.2"
+    },
+    "dependencies": {
+        "@types/react": "^18.2.38",
+        "@types/react-dom": "^18.2.16",
+        "react": "^18.3.0-canary-bbb9cb116-20231117",
+        "react-dom": "^18.3.0-canary-bbb9cb116-20231117"
+    }
 }

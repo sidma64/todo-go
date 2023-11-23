@@ -34,9 +34,21 @@ func main() {
 	todos = append(todos, NewTodo("Finish homework"))
 
 	fileServer := http.FileServer(http.Dir("./app")) // New code
-    http.Handle("/", fileServer) // New code
+	http.Handle("/", fileServer)                     // New code
 
 	http.HandleFunc("/todos", handleGetTodos)
+	http.HandleFunc("/login", handleLogIn)
 
 	http.ListenAndServe(":3000", nil)
+}
+
+func handleLogIn(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodPost:
+		json.NewEncoder(w).Encode(struct {
+			Text string
+		}{"hello"})
+	default:
+		http.Error(w, "Unsupported method", 400)
+	}
 }
