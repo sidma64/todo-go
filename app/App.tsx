@@ -24,8 +24,7 @@ const App: React.FC = () => {
             body: JSON.stringify({ password: password, email: email }),
         };
         fetch('http://localhost:3000/login', requestOptions)
-            .then((response) => response.json())
-            .then((data) => setText(JSON.stringify(data)));
+            .then((response) => setText(response.status.toString()))
     }
 
     return (
