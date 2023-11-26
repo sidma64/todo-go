@@ -4,8 +4,9 @@
     "description": "",
     "main": "build/bundle.js",
     "scripts": {
-        "build": "esbuild index.tsx --bundle --outfile=build/bundle.js",
-        "clean": "rm -rf ./build/",
+        "build": "esbuild index.tsx --bundle --outdir=build",
+        "serve": "esbuild index.tsx --bundle --outdir=build --watch",
+        "clean": "rm -rf build/",
         "lint": "prettier -w . && tsc"
     },
     "repository": {

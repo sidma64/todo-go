@@ -3,27 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/sessions"
-	"net/http"
-	"mime"
+	"github.com/google/uuid"
 )
-
-func init () {
-    _ = mime.AddExtensionType(".js", "text/javascript")
-}
-
-type Todo struct {
-	Title  string `json:"title"`
-	IsDone bool   `json:"isDone"`
-}
-
-func NewTodo(title string) Todo {
-	return Todo{
-		Title:  title,
-		IsDone: false,
-	}
-}
 
 var (
 	// key must be 16, 24 or 32 bytes long (AES-128, AES-192 or AES-256)
@@ -31,23 +16,18 @@ var (
 	store = sessions.NewCookieStore(key)
 )
 
-var todos []Todo
-
-func handleGetTodos(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		json.NewEncoder(w).Encode(todos)
-	default:
-		http.Error(w, "Unsupported method", 400)
-		return
-	}
+type Todo struct {
+	ID     uint32  `json:"id"`
+	Title  string `json:"title"`
+	IsDone bool   `json:"isDone"`
 }
 
-func main() {
-	todos = append(todos, NewTodo("Learn Microsoft Excel"))
-	todos = append(todos, NewTodo("Finish homework"))
-
-	http.ListenAndServe(":3000", router())
+func NewTodo(title string) Todo {
+	return Todo{
+		ID: uuid.New().ID(),
+		Title:  title,
+		IsDone: false,
+	}
 }
 
 type User struct {
@@ -57,17 +37,44 @@ type User struct {
 }
 
 var users []User
+var todos []Todo
 
-func init() {
+func main() {
+	todos = append(todos, NewTodo("Learn Microsoft Excel"))
+	todos = append(todos, NewTodo("Finish homework"))
 	users = append(users, User{
 		"sidma",
 		"toprak.code@gmail.com",
 		"1323",
 	})
+
+	http.ListenAndServe(":3000", router())
+}
+
+func router() http.Handler {
+	r := chi.NewRouter()
+	r.Handle("/*", http.FileServer(http.Dir("app")))
+
+	r.Route("/api", func(r chi.Router) {
+		r.Post("/login", handleLogIn)
+		r.Get("/secret", secret)
+		r.HandleFunc("/todos", handleTodos)
+	})
+	return r
+}
+
+func handleTodos(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		json.NewEncoder(w).Encode(todos)
+	default:
+		http.Error(w, "Unsupported method", 400)
+		return
+	}
 }
 
 func secret(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "cookie-name")
+	session, _ := store.Get(r, "session-key")
 
 	// Check if user is authenticated
 	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
@@ -103,17 +110,6 @@ func handleLogIn(w http.ResponseWriter, r *http.Request) {
 	default:
 		http.Error(w, "Unsupported method", 400)
 	}
-}
-
-func router() http.Handler {
-	r := chi.NewRouter()
-	r.Handle("/*", http.FileServer(http.Dir("app")))
-	r.Post("/login", handleLogIn)
-	r.Get("/secret", secret)
-	r.Get("/test", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("fgasdfa"))
-	})
-	return r
 }
 
 func validateUser(usernameOrEmail string, password string) bool {
